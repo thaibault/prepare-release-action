@@ -1,4 +1,4 @@
-name: Build package and push
+name: Prepare release
 
 inputs:
   debug:
