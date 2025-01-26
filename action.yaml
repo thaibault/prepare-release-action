@@ -29,7 +29,7 @@ runs:
 
     - name: Get the version determining script.
       run: |
-        mkdir --parents .git/build-package-and-push-action && \
+        mkdir --parents .git/prepare-release-action && \
         curl \
           --output '.git/prepare-release-action/determine-version.sh' \
           'https://raw.githubusercontent.com/thaibault/prepare-release-action/refs/heads/main/determine-version.sh'
