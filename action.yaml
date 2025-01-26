@@ -1,0 +1,60 @@
+name: Build package and push
+
+inputs:
+  debug:
+    description: Sets "NODE_ENV" to "debug".
+    required: false
+    default: false
+  type:
+    description: Sets semantic version update type.
+    default: patch
+    type: choice
+    options:
+      - major
+      - minor
+      - patch
+
+outputs:
+  version:
+    description: The newly determined version.
+    value: ${{ steps.version.outputs.new }}
+
+runs:
+  using: composite
+
+  steps:
+    - uses: thaibault/install-npm-package-dependencies-action@main
+      with:
+        debug: ${{ inputs.debug }}
+
+    - name: Get the version determining script.
+      run: |
+        mkdir --parents .git/build-package-and-push-action && \
+        curl \
+          --output '.git/prepare-release-action/determine-version.sh' \
+          'https://raw.githubusercontent.com/thaibault/prepare-release-action/refs/heads/main/determine-version.sh'
+      shell: bash
+
+    - name: Update package.json mentioned version.
+      id: version
+      run: |
+        echo "new=$(bash .git/prepare-release-action/determine-version.sh --format 'v${MAJOR}.${MINOR}.${PATCH}${CANDIDATE}' --update-manifest-file ${{inputs.type || 'patch'}})" \
+        >> "$GITHUB_OUTPUT"
+      shell: bash
+
+    - name: Remove downloaded artefacts.
+      run: rm --force --recursive .git/prepare-release-action
+      shell: bash
+
+    - name: Print determined new version.
+      run: echo Newly determined version is \"${{ steps.version.outputs.new }}\".
+      shell: bash
+
+    - name: Allow root user to publish repository location.
+      run: git config --global --add safe.directory "$GITHUB_WORKSPACE"
+      shell: bash
+
+    - uses: EndBug/add-and-commit@v9
+      with:
+        tag: ${{ steps.version.outputs.new }}
+        message: Publish new version "${{ steps.version.outputs.new }}".
