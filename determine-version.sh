@@ -95,7 +95,7 @@ elif [ "$UPDATE_TYPE" = candidate ]; then
         CANDIDATE='-1'
     else
         CANDIDATE_NUMBER="$(
-            echo "$CANDIDATE" | sed --regexp-extended "s/-(.+)/\1/"
+            echo "$CANDIDATE" | sed --regexp-extended 's/-(.+)/\1/'
         )"
         (( CANDIDATE_NUMBER += 1))
         CANDIDATE="-${CANDIDATE_NUMBER}"
