@@ -90,7 +90,9 @@ elif [ "$UPDATE_TYPE" = minor ]; then
     (( MINOR += 1))
 elif [ "$UPDATE_TYPE" = patch ]; then
     (( PATCH += 1))
-elif [ "$UPDATE_TYPE" = candidate ]; then
+fi
+
+if [ "$UPDATE_TYPE" = candidate ]; then
     if [ "$CANDIDATE" = '' ]; then
         CANDIDATE='-1'
     else
@@ -100,6 +102,8 @@ elif [ "$UPDATE_TYPE" = candidate ]; then
         (( CANDIDATE_NUMBER += 1))
         CANDIDATE="-${CANDIDATE_NUMBER}"
     fi
+else
+    CANDIDATE=''
 fi
 
 if $UPDATE_MANIFEST_FILE; then
