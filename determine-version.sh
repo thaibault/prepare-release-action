@@ -11,7 +11,7 @@
 # endregion
 # shellcheck disable=SC1090,SC2034,SC2155
 declare -r MANIFEST_FILE_PATH='./package.json'
-declare -r VERSION_PATTERN='^([1-9][0-9]*)\.([1-9][0-9]*)\.([1-9][0-9]*)(-[1-9][0-9]*)?$'
+declare -r VERSION_PATTERN='^([0-9]+)\.([0-9]+)\.([0-9]+)(-[0-9]+)?$'
 
 declare MANIFEST_FORMAT='${MAJOR}.${MINOR}.${PATCH}${CANDIDATE}'
 declare FORMAT="$MANIFEST_FORMAT"
