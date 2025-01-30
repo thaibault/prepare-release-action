@@ -11,7 +11,7 @@
 # endregion
 # shellcheck disable=SC1090,SC2034,SC2155
 declare -r MANIFEST_FILE_PATH='./package.json'
-declare -r VERSION_PATTERN='^([^.]+)\.([^.]+)\.([^.]+)(.+)?$'
+declare -r VERSION_PATTERN='^([1-9][0-9]*)\.([1-9][0-9]*)\.([1-9][0-9]*)(-[1-9][0-9]*)?$'
 
 declare MANIFEST_FORMAT='${MAJOR}.${MINOR}.${PATCH}${CANDIDATE}'
 declare FORMAT="$MANIFEST_FORMAT"
@@ -34,7 +34,7 @@ while true; do
             UPDATE_MANIFEST_FILE=true
             shift
             ;;
-        major|minor|patch)
+        major|minor|patch|candidate)
             UPDATE_TYPE="$1"
             shift
             ;;
@@ -90,6 +90,16 @@ elif [ "$UPDATE_TYPE" = minor ]; then
     (( MINOR += 1))
 elif [ "$UPDATE_TYPE" = patch ]; then
     (( PATCH += 1))
+elif [ "$UPDATE_TYPE" = candidate ]; then
+    if [ "$CANDIDATE" = '' ]; then
+        CANDIDATE='-1'
+    else
+        CANDIDATE_NUMBER="$(
+            echo "$CANDIDATE" | sed --regexp-extended "s/-(.+)/\1/"
+        )"
+        (( CANDIDATE_NUMBER += 1))
+        CANDIDATE="-${CANDIDATE_NUMBER}"
+    fi
 fi
 
 if $UPDATE_MANIFEST_FILE; then
