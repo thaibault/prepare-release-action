@@ -39,7 +39,7 @@ runs:
     - name: Update package.json mentioned version.
       id: version
       run: |
-        echo "new=$(bash .git/prepare-release-action/determine-version.sh --format 'v${MAJOR}.${MINOR}.${PATCH}${CANDIDATE}' --update-manifest-file ${{inputs.type || 'patch'}})" \
+        echo "new=$(bash .git/prepare-release-action/determine-version.sh --format 'v${MAJOR}.${MINOR}.${PATCH}${CANDIDATE}' --update-manifest-file ${{inputs.type || 'patch'}})" \
         >> "$GITHUB_OUTPUT"
       shell: bash
 
