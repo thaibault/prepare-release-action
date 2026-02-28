@@ -86,12 +86,12 @@ fi
 
 if [ "$UPDATE_TYPE" = major ]; then
     (( MAJOR += 1))
-    MINOR = 0
-    PATCH = 0
+    MINOR=0
+    PATCH=0
     CANDIDATE=''
 elif [ "$UPDATE_TYPE" = minor ]; then
     (( MINOR += 1))
-    PATCH = 0
+    PATCH=0
     CANDIDATE=''
 elif [ "$UPDATE_TYPE" = patch ]; then
     (( PATCH += 1))
