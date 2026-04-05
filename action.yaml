@@ -55,7 +55,7 @@ runs:
       run: git config --global --add safe.directory "$GITHUB_WORKSPACE"
       shell: bash
 
-    - uses: EndBug/add-and-commit@v9
+    - uses: EndBug/add-and-commit@v10
       with:
         tag: ${{ steps.version.outputs.new }}
         message: Publish new version "${{ steps.version.outputs.new }}".
