@@ -112,7 +112,7 @@ fi
 
 if $UPDATE_MANIFEST_FILE; then
     declare -r NEW_MANIFEST_VERSION="$(eval "echo \"${MANIFEST_FORMAT}\"")"
-    node --eval "const {writeFileSync} = require('fs'); const content = require('${MANIFEST_FILE_PATH}'); content.version = '${NEW_MANIFEST_VERSION}'; writeFileSync('${MANIFEST_FILE_PATH}', JSON.stringify(content, null, 2), {encoding: 'utf-8'})"
+    node --eval "const {writeFileSync} = require('fs'); const content = require('${MANIFEST_FILE_PATH}'); content.version = '${NEW_MANIFEST_VERSION}'; writeFileSync('${MANIFEST_FILE_PATH}', JSON.stringify(content, null, 2) + '\n', {encoding: 'utf-8'})"
 fi
 
 declare -r NEW_VERSION="$(eval "echo \"${FORMAT}\"")"
