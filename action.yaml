@@ -49,7 +49,7 @@ runs:
       run: npm pkg fix
       shell: bash
 
-    - name: Remove downloaded artefacts.
+    - name: Remove downloaded artifacts.
       run: rm --force --recursive .git/prepare-release-action
       shell: bash
 
