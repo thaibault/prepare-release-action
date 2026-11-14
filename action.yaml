@@ -19,12 +19,35 @@ outputs:
   version:
     description: The newly determined version.
     value: ${{ steps.version.outputs.new }}
+  has-package-json:
+    description: Indicates whether a "package.json" exists.
+    value: ${{ steps.manifests.outputs.package-json }}
+  has-pkgbuild:
+    description: Indicates whether an arch "PKGBUILD" exists.
+    value: ${{ steps.manifests.outputs.pkgbuild }}
 
 runs:
   using: composite
 
   steps:
-    - uses: thaibault/install-npm-package-dependencies-action@main
+    # NOTE: Needed to determine available manifest files before installing
+    # node dependencies (which checks out the repository again).
+    - name: Checkout repository.
+      uses: actions/checkout@main
+      with:
+        fetch-tags: true
+
+    - name: Determine available manifest files.
+      id: manifests
+      run: |
+        echo "package-json=$([ -s package.json ] && echo true || echo false)" \
+            >> "$GITHUB_OUTPUT"
+        echo "pkgbuild=$([ -s PKGBUILD ] && echo true || echo false)" \
+            >> "$GITHUB_OUTPUT"
+      shell: bash
+
+    - if: steps.manifests.outputs.package-json == 'true'
+      uses: thaibault/install-npm-package-dependencies-action@main
       with:
         debug: ${{ inputs.debug }}
 
@@ -32,20 +55,23 @@ runs:
       run: |
         mkdir --parents .git/prepare-release-action && \
         curl \
-          --output '.git/prepare-release-action/determine-version.sh' \
-          'https://raw.githubusercontent.com/thaibault/prepare-release-action/refs/heads/main/determine-version.sh'
+          --output '.git/prepare-release-action/determine-version-and-update-manifest-files.sh' \
+          'https://raw.githubusercontent.com/thaibault/prepare-release-action/refs/heads/main/determine-version-and-update-manifest-files.sh'
       shell: bash
 
-    - name: Update package.json mentioned version.
+    - name: Update package.json and / or PKGBUILD mentioned version.
       id: version
+      # NOTE: A separate assignment lets the step fail if version
+      # determination fails.
       run: |
-        echo "new=$(bash .git/prepare-release-action/determine-version.sh --format 'v${MAJOR}.${MINOR}.${PATCH}${CANDIDATE}' --update-manifest-file ${{inputs.type || 'patch'}})" \
-        >> "$GITHUB_OUTPUT"
+        version="$(bash .git/prepare-release-action/determine-version-and-update-manifest-files.sh --format 'v${MAJOR}.${MINOR}.${PATCH}${CANDIDATE}' --update-manifest-file ${{inputs.type || 'patch'}})"
+        echo "new=${version}" >> "$GITHUB_OUTPUT"
       shell: bash
 
     # NOTE: E.g. "yarn install" collapses a single "bin" entry named after the
     # package into a string while npm expects the object form.
-    - name: Normalize package.json to npm's expected format.
+    - if: steps.manifests.outputs.package-json == 'true'
+      name: Normalize package.json to npm's expected format.
       run: npm pkg fix
       shell: bash
 
@@ -65,3 +91,16 @@ runs:
       with:
         tag: ${{ steps.version.outputs.new }}
         message: Publish new version "${{ steps.version.outputs.new }}".
+
+    # NOTE: "add-and-commit" only tags if there is something to commit (e.g.
+    # not for candidates without "package.json").
+    - name: Tag unchanged working tree with new version.
+      env:
+        VERSION: ${{ steps.version.outputs.new }}
+      run: |
+        if ! git rev-parse --quiet --verify "refs/tags/${VERSION}" >/dev/null
+        then
+            git tag "$VERSION"
+            git push origin "refs/tags/${VERSION}"
+        fi
+      shell: bash
