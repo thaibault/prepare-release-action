@@ -92,6 +92,14 @@ else
     declare -r GIVEN_VERSION
 fi
 
+if ! [[ "$GIVEN_VERSION" =~ $VERSION_PATTERN ]]; then
+    echo \
+        "Given version \"${GIVEN_VERSION}\" does not match" \
+        "\"<major>.<minor>.<patch>\" or \"<major>.<minor>.<patch>-<number>\"." \
+        &>/dev/stderr
+    exit 1
+fi
+
 declare MAJOR="$(
     echo "$GIVEN_VERSION" | sed --regexp-extended "s/${VERSION_PATTERN}/\1/"
 )"

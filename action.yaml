@@ -6,14 +6,10 @@ inputs:
     required: false
     default: false
   type:
-    description: Sets semantic version update type.
+    description: |
+      Sets semantic version update type: "major", "minor", "patch" or
+      "candidate".
     default: patch
-    type: choice
-    options:
-      - major
-      - minor
-      - patch
-      - candidate
 
 outputs:
   version:
@@ -33,7 +29,7 @@ runs:
     # NOTE: Needed to determine available manifest files before installing
     # node dependencies (which checks out the repository again).
     - name: Checkout repository.
-      uses: actions/checkout@main
+      uses: actions/checkout@v7
       with:
         fetch-tags: true
 
@@ -51,20 +47,16 @@ runs:
       with:
         debug: ${{ inputs.debug }}
 
-    - name: Get the version determining script.
-      run: |
-        mkdir --parents .git/prepare-release-action && \
-        curl \
-          --output '.git/prepare-release-action/determine-version-and-update-manifest-files.sh' \
-          'https://raw.githubusercontent.com/thaibault/prepare-release-action/refs/heads/main/determine-version-and-update-manifest-files.sh'
-      shell: bash
-
     - name: Update package.json and / or PKGBUILD mentioned version.
       id: version
+      env:
+        TYPE: ${{ inputs.type || 'patch' }}
       # NOTE: A separate assignment lets the step fail if version
-      # determination fails.
+      # determination fails. "GITHUB_ACTION_PATH" (unlike
+      # "github.action_path") also points to this action's files inside a
+      # job container.
       run: |
-        version="$(bash .git/prepare-release-action/determine-version-and-update-manifest-files.sh --format 'v${MAJOR}.${MINOR}.${PATCH}${CANDIDATE}' --update-manifest-file ${{inputs.type || 'patch'}})"
+        version="$(bash "${GITHUB_ACTION_PATH}/determine-version-and-update-manifest-files.sh" --format 'v${MAJOR}.${MINOR}.${PATCH}${CANDIDATE}' --update-manifest-file "$TYPE")"
         echo "new=${version}" >> "$GITHUB_OUTPUT"
       shell: bash
 
@@ -73,10 +65,6 @@ runs:
     - if: steps.manifests.outputs.package-json == 'true'
       name: Normalize package.json to npm's expected format.
       run: npm pkg fix
-      shell: bash
-
-    - name: Remove downloaded artifacts.
-      run: rm --force --recursive .git/prepare-release-action
       shell: bash
 
     - name: Print determined new version.
