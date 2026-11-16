@@ -122,6 +122,71 @@ running as root, the action marks the workspace as safe for git itself.
     travail comme sûr pour git.
 -->
 
+<!--|deDE:Gemeinsamer Workflow-->
+<!--|frFR:Workflow partagé-->
+### Shared workflow
+
+The reusable workflow ".github/workflows/prepare-and-dispatch-release.yaml"
+runs this action in a "node:lts" container and afterwards sends a
+"prepare-release-event" repository dispatch (or "prepare-pre-release-event"
+for a "candidate") to the repository, carrying the new version as "version"
+in its client payload. Workflows like image builds can be triggered by this
+event. A repository then only declares its trigger:
+<!--deDE:
+    Der wiederverwendbare Workflow
+    ".github/workflows/prepare-and-dispatch-release.yaml" führt diese Action
+    in einem "node:lts"-Container aus und sendet danach einen
+    "prepare-release-event" Repository-Dispatch (bzw.
+    "prepare-pre-release-event" für einen "candidate") an das Repository,
+    der die neue Version als "version" in seinen Client-Daten trägt.
+    Workflows wie Image-Builds lassen sich durch dieses Ereignis auslösen.
+    Ein Repository deklariert dann nur noch seinen Auslöser:
+-->
+<!--frFR:
+    Le workflow réutilisable
+    ".github/workflows/prepare-and-dispatch-release.yaml" exécute cette
+    action dans un conteneur "node:lts" puis envoie au dépôt un repository
+    dispatch "prepare-release-event" (ou "prepare-pre-release-event" pour un
+    "candidate") qui porte la nouvelle version comme "version" dans ses
+    données client. Des workflows comme la construction d'images peuvent
+    être déclenchés par cet événement. Un dépôt ne déclare alors plus que
+    son déclencheur:
+-->
+
+```yaml
+on:
+  workflow_dispatch:
+    inputs:
+      type:
+        default: patch
+        type: choice
+        options:
+          - major
+          - minor
+          - patch
+          - candidate
+
+jobs:
+  main:
+    permissions:
+      contents: write
+
+    uses: thaibault/prepare-release-action/.github/workflows/prepare-and-dispatch-release.yaml@main
+    with:
+      type: ${{ inputs.type }}
+```
+
+It takes the inputs "debug" and "type" of the action and provides the new
+"version" as output.
+<!--deDE:
+    Er nimmt die Eingaben "debug" und "type" der Action entgegen und liefert
+    die neue "version" als Ausgabe.
+-->
+<!--frFR:
+    Il prend les entrées "debug" et "type" de l'action et fournit la nouvelle
+    "version" en sortie.
+-->
+
 <!--|deDE:Eingaben-->
 <!--|frFR:Entrées-->
 Inputs
